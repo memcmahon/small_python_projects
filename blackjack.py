@@ -39,17 +39,70 @@ def main():
         # Player actions:
         print('Bet:', bet)
 
-        # while True:
-        displayHands(playerHand, dealerHand, False)
-        print()
+        while True: #player
+            displayHands(playerHand, dealerHand, False)
+            print()
 
-        # check if player has busted:
-        if getHandValue(playerHand) > 21:
-            break
+            # check if player has busted:
+            if getHandValue(playerHand) > 21:
+                break
 
-        # get the players move - H, S, or D:
-        move = getMove(playerHand, money - bet)
+            # get the players move - H, S, or D:
+            move = getMove(playerHand, money - bet)
 
+            if move == 'D':
+                additionalBet = getBet(min(bet, (money - bet)))
+                bet += additionalBet
+                print('Bet increased by {}.'.format(additionalBet))
+                print('Bet:', bet)
+
+            if move in ('H', 'D'):
+                newCard = deck.pop()
+                rank, suit = newCard
+                print('You drew a {} of {}'.format(rank, suit))
+                playerHand.append(newCard)
+
+                if getHandValue(playerHand) > 21:
+                    continue
+
+            if move == 'S':
+                break
+
+        # dealer
+        if getHandValue(playerHand) <= 21:
+            while getHandValue(dealerHand) < 17:
+                print('Dealer hits...')
+                dealerHand.append(deck.pop())
+                displayHands(playerHand, dealerHand, False)
+
+                if getHandValue(dealerHand) > 17:
+                    break
+
+                input('Press Enter to continue...')
+                print('\n\n')
+
+
+        # show the final hands
+        displayHands(playerHand, dealerHand, True)
+
+        playerValue = getHandValue(playerHand)
+        dealerValue = getHandValue(dealerHand)
+
+        if dealerValue > 21:
+            print('Dealer busts! You win ${}!'.format(bet))
+            money += bet
+        elif (playerValue > 21) or (playerValue < dealerValue):
+            print('You lost!')
+            money -= bet
+        elif playerValue > dealerValue:
+            print('You won${}!'.format(bet))
+            money += bet
+        elif playerValue == dealerValue:
+            print('It\'s a tie, the bet is returned to you.')
+
+        input('Press Enter to continue...')
+        print('\n\n')
+        
 
 def getBet(maxBet):
     """Ask the player how much money they want to bet for this round."""
@@ -131,6 +184,21 @@ def displayCards(cards):
 
     for row in rows:
         print(row)
+
+def getMove(playerHand, money):
+    """Asks the player for their move and returns H S or D """
+    while True:
+        moves = ['(H)it', '(S)tand']
+
+        if len(playerHand) == 2 and money > 0:
+            moves.append('(D)ouble down')
+
+        movePrompt = ', '.join(moves) + '> '
+        move = input(movePrompt).upper()
+        if move in ('H', 'S'):
+            return move
+        if move == 'D' and '(D)ouble down' in moves:
+            return move
 
 
 
